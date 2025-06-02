@@ -1,6 +1,6 @@
 # Java Concurrency Sandbox
 
-This project serves as a practical demonstration of Java concurrency concepts, following the tutorial from [Java Concurrency and Multithreading](https://www.youtube.com/watch?v=gvQGKRlgop) (Note: This URL may be incomplete, please verify the correct link).
+This project serves as a practical demonstration of Java concurrency concepts.
 
 ## Project Overview
 
@@ -25,6 +25,8 @@ The project is organized as follows:
 
 - `src/main/java/com/sandbox/` - Contains all the example code
   - `Main.java` - Entry point for running examples
+- `docs/` - Contains markdown files with theory about Java concurrency concepts
+  - `concurrency-basics.md` - Introduction to Java concurrency basics
 
 ## Prerequisites
 
