@@ -51,40 +51,40 @@ public class ThreadPriorityDemo {
         System.out.println("Normal Priority Thread count: " + normalPriorityWorker.getCounter());
         System.out.println("High Priority Thread count: " + highPriorityWorker.getCounter());
     }
-}
 
-/**
- * A thread class that counts how many iterations it can perform in a fixed time period.
- * This helps demonstrate the impact of thread priorities on CPU time allocation.
- */
-class PriorityWorker extends Thread {
-    private long counter = 0;
+    /**
+     * A thread class that counts how many iterations it can perform in a fixed time period.
+     * This helps demonstrate the impact of thread priorities on CPU time allocation.
+     */
+    static class PriorityWorker extends Thread {
+        private long counter = 0;
 
-    public PriorityWorker(String name) {
-        super(name);
-    }
-
-    @Override
-    public void run() {
-        System.out.println(getName() + " started with priority " + getPriority());
-
-        // Run for a fixed amount of time (3 seconds)
-        long endTime = System.currentTimeMillis() + 3000;
-
-        boolean running = true;
-        while (System.currentTimeMillis() < endTime) {
-            counter++;
-
-            // Print progress every 10 million iterations
-            if (counter % 10_000_000 == 0) {
-                System.out.println(getName() + " reached " + counter + " iterations");
-            }
+        public PriorityWorker(String name) {
+            super(name);
         }
 
-        System.out.println(getName() + " finished with " + counter + " iterations");
-    }
+        @Override
+        public void run() {
+            System.out.println(getName() + " started with priority " + getPriority());
 
-    public long getCounter() {
-        return counter;
+            // Run for a fixed amount of time (3 seconds)
+            long endTime = System.currentTimeMillis() + 3000;
+
+            boolean running = true;
+            while (System.currentTimeMillis() < endTime) {
+                counter++;
+
+                // Print progress every 10 million iterations
+                if (counter % 10_000_000 == 0) {
+                    System.out.println(getName() + " reached " + counter + " iterations");
+                }
+            }
+
+            System.out.println(getName() + " finished with " + counter + " iterations");
+        }
+
+        public long getCounter() {
+            return counter;
+        }
     }
 }
