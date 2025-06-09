@@ -59,6 +59,20 @@ Each concurrency concept is demonstrated in separate classes or packages. To exp
 3. Run the example to see it in action
 4. Experiment by modifying the code to deepen your understanding
 
+## Important Note on Compilation
+
+This project uses Maven for build management. Always use Maven commands to compile and run the code:
+
+```
+# To compile the project
+mvn compile
+
+# To run a specific class
+mvn exec:java -Dexec.mainClass="com.sandbox.executors.ScheduledThreadPoolDemo"
+```
+
+Avoid using direct `javac` commands (like `javac src\main\java\com\sandbox\executors\ScheduledThreadPoolDemo.java`) as this will create `.class` files in your source directories, which is not recommended. Maven automatically places compiled classes in the `target/classes` directory, keeping your source directories clean.
+
 ## References
 
 This project is based on the concepts taught in the [Java Concurrency and Multithreading](https://www.youtube.com/watch?v=gvQGKRlgop) (Note: This URL may be incomplete, please verify the correct link) tutorial.
