@@ -142,6 +142,34 @@ synchronized (lock) {
 
 4. **Consider higher-level concurrency utilities** from `java.util.concurrent` like `BlockingQueue`, `CountDownLatch`, or `Semaphore` instead of raw wait/notify.
 
+## Difference Between wait() and sleep()
+
+It's important to understand the key differences between `wait()` and `Thread.sleep()` methods, as they serve different purposes in concurrent programming:
+
+| Feature | wait() | sleep() |
+|---------|--------|---------|
+| **Package** | Defined in `Object` class | Defined in `Thread` class |
+| **Lock Release** | Releases the lock on the object | Does not release any locks |
+| **Waking Up** | Wakes up when notified by `notify()` or `notifyAll()`, or when timeout expires | Wakes up automatically after specified time period |
+| **Usage Context** | Must be called from a synchronized context | Can be called from anywhere |
+| **Purpose** | Thread communication and coordination | Introducing delays without coordination |
+| **State Transition** | Moves thread to WAITING or TIMED_WAITING state | Moves thread to TIMED_WAITING state |
+| **Interruption** | Throws InterruptedException if interrupted | Throws InterruptedException if interrupted |
+
+### Key Distinctions:
+
+1. **Lock Behavior**: 
+   - When a thread calls `wait()`, it releases the lock it holds on the object and allows other threads to acquire it.
+   - When a thread calls `sleep()`, it continues to hold any locks it has acquired.
+
+2. **Resumption Mechanism**:
+   - A waiting thread can only resume when another thread calls `notify()` or `notifyAll()` on the same object (or when the optional timeout expires).
+   - A sleeping thread automatically resumes after the specified sleep time without requiring any notification.
+
+3. **Usage Scenario**:
+   - Use `wait()` when a thread needs to wait for a specific condition that will be fulfilled by another thread.
+   - Use `sleep()` when a thread needs to pause its execution for a specific duration without coordination with other threads.
+
 ## Alternative Signaling Mechanisms
 
 While wait/notify is the traditional mechanism for thread signaling in Java, there are alternative approaches that may be more suitable in certain scenarios:
@@ -177,79 +205,8 @@ public class BusyWaitExample {
 
 This approach is generally not recommended as it consumes CPU resources unnecessarily. However, it can be useful in very specific scenarios where the wait time is expected to be extremely short.
 
-### Lock and Condition
+> **Additional Resource**: For a comprehensive explanation of busy waiting, its implications, and use cases, see this article: [Busy Waiting in Operating Systems](https://www.baeldung.com/cs/os-busy-waiting)
 
-The `java.util.concurrent.locks` package provides more flexible locking mechanisms:
-
-```java
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-public class LockConditionExample {
-    private final Lock lock = new ReentrantLock();
-    private final Condition condition = lock.newCondition();
-    private boolean signal = false;
-
-    public void doWait() throws InterruptedException {
-        lock.lock();
-        try {
-            while (!signal) {
-                condition.await(); // Similar to wait()
-            }
-            // Process after signal
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void doNotify() {
-        lock.lock();
-        try {
-            signal = true;
-            condition.signal(); // Similar to notify()
-        } finally {
-            lock.unlock();
-        }
-    }
-}
-```
-
-This approach offers more flexibility than traditional wait/notify, including the ability to create multiple conditions per lock.
-
-### BlockingQueue
-
-For producer-consumer scenarios, the `BlockingQueue` interface provides a thread-safe way to exchange data:
-
-```java
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
-public class BlockingQueueExample {
-    public static void main(String[] args) {
-        BlockingQueue<String> queue = new LinkedBlockingQueue<>(10);
-
-        // Producer thread
-        new Thread(() -> {
-            try {
-                queue.put("Message"); // Blocks if queue is full
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
-
-        // Consumer thread
-        new Thread(() -> {
-            try {
-                String message = queue.take(); // Blocks if queue is empty
-                System.out.println("Received: " + message);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
-    }
-}
-```
 
 ## Conclusion
 
@@ -257,4 +214,4 @@ The wait/notify mechanism provides a powerful way for threads to communicate and
 
 In our `WaitNotifyDemo` example, we've seen how one thread can wait for a signal from another thread, and how data (the message) can be safely passed between threads using this mechanism in conjunction with proper synchronization.
 
-As shown in the alternative approaches section, Java offers several mechanisms for thread communication beyond wait/notify. The choice of which mechanism to use depends on the specific requirements of your application, including performance considerations, flexibility needs, and the complexity of the coordination required.
+As mentioned in the busy wait section, there are other approaches for thread communication beyond wait/notify, though they each have their own trade-offs. The choice of which mechanism to use depends on the specific requirements of your application, including performance considerations, flexibility needs, and the complexity of the coordination required.
