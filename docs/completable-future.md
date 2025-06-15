@@ -280,6 +280,42 @@ When choosing between Future and CompletableFuture, consider these performance a
 - You want more control over timeouts and thread execution
 - You're working with Java 8+ and can leverage functional interfaces
 
+## Blocking vs Non-Blocking Methods
+
+When working with CompletableFuture and Future, it's important to understand which methods block the caller thread and which don't:
+
+### Blocking Methods
+
+These methods will block the caller thread until the result is available or an exception occurs:
+
+1. **Future.get()** - Blocks indefinitely until the result is available
+2. **Future.get(timeout, unit)** - Blocks until the result is available or the timeout expires
+3. **CompletableFuture.get()** - Inherited from Future, blocks indefinitely
+4. **CompletableFuture.get(timeout, unit)** - Inherited from Future, blocks with timeout
+5. **CompletableFuture.join()** - Similar to get() but throws unchecked exceptions, blocks indefinitely
+6. **CompletableFuture.getNow(valueIfAbsent)** - Returns immediately with the provided value if not done, otherwise blocks momentarily to get the result
+
+### Non-Blocking Methods
+
+These methods return immediately and don't block the caller thread:
+
+1. **All creation methods** - completedFuture(), supplyAsync(), runAsync()
+2. **All transformation methods** - thenApply(), thenAccept(), thenRun() and their async variants
+3. **All composition methods** - thenCompose(), thenCombine()
+4. **All combining methods** - allOf(), anyOf()
+5. **All exception handling methods** - exceptionally(), handle(), whenComplete()
+6. **All manual completion methods** - complete(), completeExceptionally()
+7. **All timing control methods** - orTimeout(), completeOnTimeout()
+
+### When to Use Blocking Methods
+
+Blocking methods should be used with caution:
+
+- Use blocking methods only when you absolutely need to wait for the result before proceeding
+- Avoid calling blocking methods on the UI thread or any thread that needs to remain responsive
+- Consider using timeouts with blocking methods to avoid indefinite waiting
+- When possible, prefer non-blocking alternatives like thenAccept() instead of get()
+
 ## Best Practices
 
 1. **Provide Custom Executors for I/O Operations**:
