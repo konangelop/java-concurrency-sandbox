@@ -8,6 +8,7 @@ This document provides an explanation of the different types of executors availa
 - [Fixed Thread Pool](#fixed-thread-pool)
 - [Cached Thread Pool](#cached-thread-pool)
 - [Scheduled Thread Pool](#scheduled-thread-pool)
+- [Callables and Futures](#callables-and-futures)
 - [Comparison of Executor Types](#comparison-of-executor-types)
 - [Best Practices](#best-practices)
 - [Thread Pool Sizing](#thread-pool-sizing)
@@ -185,6 +186,72 @@ ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(corePoolSi
 
 See [ScheduledThreadPoolDemo.java](../src/main/java/com/sandbox/executors/ScheduledThreadPoolDemo.java) for a complete example of how to use a Scheduled Thread Pool.
 
+## Callables and Futures
+
+### How They Work
+
+While Runnable is used for tasks that don't return a result, Callable is designed for tasks that need to return a value or throw a checked exception. Future represents the result of an asynchronous computation and provides methods to check if the computation is complete, wait for its completion, and retrieve the result.
+
+```java
+// Creating a Callable
+Callable<Integer> callable = () -> {
+    // Perform some computation
+    return 42; // Return a result
+};
+
+// Submitting a Callable to an executor and getting a Future
+Future<Integer> future = executor.submit(callable);
+
+// Getting the result from a Future (blocks until the result is available)
+Integer result = future.get();
+```
+
+### Key Characteristics of Callable
+
+- Similar to Runnable but can return a value and throw checked exceptions
+- Defined by the `Callable<V>` interface with a single `call()` method
+- The generic type parameter `V` specifies the type of the result
+- Can be submitted to an ExecutorService using the `submit()` method
+
+### Key Characteristics of Future
+
+- Represents the result of an asynchronous computation
+- Provides methods to check if the computation is complete (`isDone()`)
+- Allows waiting for the computation to complete (`get()`)
+- Supports timeouts when waiting for results (`get(long timeout, TimeUnit unit)`)
+- Allows cancellation of the computation (`cancel(boolean mayInterruptIfRunning)`)
+- Can check if the computation was cancelled (`isCancelled()`)
+
+### Additional ExecutorService Methods for Callables
+
+- `invokeAll(Collection<? extends Callable<T>> tasks)`: Executes all tasks and returns a list of Futures
+- `invokeAny(Collection<? extends Callable<T>> tasks)`: Executes the tasks and returns the result of one that successfully completes (if any)
+
+### Typical Use Cases
+
+- When tasks need to return results
+- For computations that might throw checked exceptions
+- When you need to cancel long-running tasks
+- For implementing timeouts on task execution
+- When you need to execute multiple tasks and process their results as they become available
+
+### Advantages and Limitations
+
+**Advantages:**
+- Provides a clean way to get results from asynchronous tasks
+- Supports exception handling for task execution
+- Offers mechanisms for timeouts and cancellation
+- Enables more complex execution patterns with invokeAll() and invokeAny()
+
+**Limitations:**
+- More complex to use than simple Runnables
+- Blocking on get() can lead to thread starvation if not managed carefully
+- Requires explicit handling of InterruptedException, ExecutionException, and TimeoutException
+
+### Example
+
+See [CallableFutureDemo.java](../src/main/java/com/sandbox/executors/CallableFutureDemo.java) for a complete example of how to use Callables and Futures.
+
 ## Comparison of Executor Types
 
 | Executor Type | Thread Creation | Thread Reuse | Queue Type | Task Ordering | Use Case |
@@ -193,6 +260,14 @@ See [ScheduledThreadPoolDemo.java](../src/main/java/com/sandbox/executors/Schedu
 | Fixed Thread Pool | Fixed number | Reuses all threads | Unbounded LinkedBlockingQueue | Concurrent with FIFO queue | Limiting concurrent threads, CPU-intensive tasks |
 | Cached Thread Pool | As needed | Reuses idle threads | SynchronousQueue (direct handoff) | No guaranteed order | Many short-lived tasks, variable load |
 | Scheduled Thread Pool | Fixed number | Reuses all threads | DelayedWorkQueue | Time-based priority | Delayed or periodic tasks |
+
+| Feature | Runnable | Callable |
+|---------|----------|----------|
+| Return Value | No (void) | Yes (generic type) |
+| Exception Handling | Cannot throw checked exceptions | Can throw checked exceptions |
+| Execution Method | execute() or submit() | submit(), invokeAll(), or invokeAny() |
+| Result Handling | None | Via Future interface |
+| Use Case | Fire-and-forget tasks | Tasks that need to return results or throw exceptions |
 
 ## Best Practices
 
@@ -388,3 +463,11 @@ This approach ensures that resources are properly released even if exceptions oc
 - [Java SE Documentation: ThreadPoolExecutor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html) - Official documentation for ThreadPoolExecutor, including sizing parameters
 - [Netflix Tech Blog: Thread Pool Sizing](https://netflixtechblog.com/performance-under-load-3e6fa9a60581) - Netflix's approach to thread pool sizing for high-scale systems
 - [Martin Fowler: Patterns of Enterprise Application Architecture](https://martinfowler.com/eaaCatalog/) - Contains patterns related to concurrency and resource management
+
+### Callables and Futures
+
+- [Java SE Documentation: Callable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Callable.html) - Official Java documentation for the Callable interface
+- [Java SE Documentation: Future](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html) - Official Java documentation for the Future interface
+- [Baeldung: Guide to java.util.concurrent.Future](https://www.baeldung.com/java-future) - Comprehensive guide to using Futures in Java
+- [Oracle: Callable and Future Tutorial](https://docs.oracle.com/javase/tutorial/essential/concurrency/executors.html) - Oracle's tutorial on Callable and Future
+- [Java SE Documentation: ExecutorService.invokeAll/invokeAny](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html) - Documentation for the invokeAll and invokeAny methods
